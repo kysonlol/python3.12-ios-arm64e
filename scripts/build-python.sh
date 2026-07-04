@@ -126,7 +126,7 @@ export LDSHARED="$CC -bundle -undefined dynamic_lookup $LDFLAGS"
 export LDCXXSHARED="$CXX -bundle -undefined dynamic_lookup $LDFLAGS"
 
 # Run configure
-./configure \
+bash configure \
   --host="${HOST_TRIPLE}" \
   --build="$(uname -m)-apple-darwin" \
   --prefix=/usr/local \
@@ -134,7 +134,7 @@ export LDCXXSHARED="$CXX -bundle -undefined dynamic_lookup $LDFLAGS"
   --with-openssl="$DEPS/openssl-ios/usr/local" \
   --with-ensurepip=install \
   --disable-test-modules
-
+  
 # Patch Makefile to skip 'checksharedmods' which fails during cross-compilation
 awk 'BEGIN{skip=0}
   /^checksharedmods:/{print "checksharedmods:\n\t@true"; skip=1; next}
