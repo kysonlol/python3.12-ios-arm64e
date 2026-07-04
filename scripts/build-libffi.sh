@@ -48,4 +48,3 @@ make -j"$JOBS"
 make install
 
 echo "Success: libffi compiled for arm64e."
-# force change
