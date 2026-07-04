@@ -64,13 +64,15 @@ VENDOR_DIR="$REPO_ROOT/vendor/gnu-config"
 
 cp configure configure.orig
 
-sed -i '' \
+if grep -q "cross build not supported" configure; then
 
-  's/cross build not supported/: # cross build allowed for iOS/' \
+    echo "Patching configure..."
 
-  configure
+    sed 's/cross build not supported/: # cross build allowed for iOS/' configure > configure.tmp
 
-grep -n 'cross build not supported' configure || true
+    mv configure.tmp configure
+
+fi
 
 # Create config.site to pre-define answers for configure checks that cannot run
 # during cross-compilation.
