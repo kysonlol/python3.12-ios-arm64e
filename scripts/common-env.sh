@@ -41,7 +41,7 @@ CXX="$(xcrun --sdk iphoneos -f clang++)"
 AR="$(xcrun --sdk iphoneos -f ar)"
 RANLIB="$(xcrun --sdk iphoneos -f ranlib)"
 STRIP="$(xcrun --sdk iphoneos -f strip)"
-HOST_TRIPLE="${ARCHS}-apple-ios"
+HOST_TRIPLE="aarch64-apple-darwin"
 
 # ------------------------------------------------------------------------------
 # Compiler Flags
