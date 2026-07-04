@@ -62,30 +62,14 @@ EOF
 REPO_ROOT="$(cd "$(dirname "$WORKDIR")" && pwd)"
 VENDOR_DIR="$REPO_ROOT/vendor/gnu-config"
 
-# Use patch file for configure script to allow cross-compilation.
-# This replaces the "cross build not supported" error with a warning.
-PATCH_FILE="$REPO_ROOT/scripts/python-configure.patch"
-if ! gpatch -p0 < "$PATCH_FILE"; then
+cp configure configure.orig
 
-    echo "Warning: Patch failed. Falling back to sed..."
+sed -i '' \
 
-    cp configure configure.orig
+  's/cross build not supported/: # cross build allowed for iOS/' \
 
-    GSED="$(command -v gsed || true)"
+  configure
 
-    if [ -z "$GSED" ]; then
-
-        echo "Installing gsed..."
-
-        brew install gnu-sed
-
-        GSED="$(command -v gsed)"
-
-    fi
-
-    "$GSED" -ri 's/^[[:space:]]*as_fn_error[^\n]*cross build not supported[^\n]*$/  : # allow iOS cross build for $host/' configure
-
-fi
 grep -n 'cross build not supported' configure || true
 
 # Create config.site to pre-define answers for configure checks that cannot run
