@@ -48,7 +48,7 @@ HOST_TRIPLE="aarch64-apple-darwin"
 # ------------------------------------------------------------------------------
 # CFLAGS/LDFLAGS: Set architecture to arm64, point to SDK, and set min iOS version.
 # -fPIC is required for building shared libraries/extensions.
-export CFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS} -fPIC -fno-asynchronous-unwind-tables"
+export CFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS} -fPIC"
 export LDFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS}"
 
 # ------------------------------------------------------------------------------
