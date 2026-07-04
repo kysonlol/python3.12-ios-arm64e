@@ -13,8 +13,8 @@ set -euo pipefail
 # Determine number of CPU cores for parallel make jobs.
 JOBS="$(sysctl -n hw.ncpu)"
 
-# Default iOS version target (can be overridden by environment)
-MIN_IOS="${MIN_IOS:-14.5}"
+export ARCHS="${ARCHS:-arm64e}"
+MIN_IOS="${MIN_IOS:-15.0}"
 
 # ------------------------------------------------------------------------------
 # Directory Structure
@@ -41,18 +41,18 @@ CXX="$(xcrun --sdk iphoneos -f clang++)"
 AR="$(xcrun --sdk iphoneos -f ar)"
 RANLIB="$(xcrun --sdk iphoneos -f ranlib)"
 STRIP="$(xcrun --sdk iphoneos -f strip)"
-HOST_TRIPLE="aarch64-apple-darwin"
+HOST_TRIPLE="${ARCHS}-apple-ios"
 
 # ------------------------------------------------------------------------------
 # Compiler Flags
 # ------------------------------------------------------------------------------
 # CFLAGS/LDFLAGS: Set architecture to arm64, point to SDK, and set min iOS version.
 # -fPIC is required for building shared libraries/extensions.
-export CFLAGS="-arch arm64 -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS} -fPIC"
-export LDFLAGS="-arch arm64 -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS}"
+export CFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS} -fPIC"
+export LDFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS}"
 
 # ------------------------------------------------------------------------------
 # Exports
 # ------------------------------------------------------------------------------
 # Export variables for use in child scripts.
-export JOBS WORKDIR DEPS BUILD STAGE IOS_SDK HOST_TRIPLE
+export JOBS WORKDIR DEPS BUILD STAGE IOS_SDK HOST_TRIPLE CC CXX AR RANLIB STRIP
