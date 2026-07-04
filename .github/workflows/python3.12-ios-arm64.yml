@@ -12,7 +12,7 @@ jobs:
       cancel-in-progress: true
     env:
       PY_VER: 3.12.5
-      LIBFFI_VER: 3.4.4
+      LIBFFI_VER: 3.4.8
       MIN_IOS: 15.0 # Roothide target systems generally require iOS 15.0+
       ARCHS: arm64e # Targets arm64e slice
       THEOS_PACKAGE_SCHEME: roothide # Signals Roothide environment mapping
@@ -70,7 +70,7 @@ jobs:
       - name: Build Python 3.12 for iOS and package .deb
         env:
           PY_VER: 3.12.5
-          LIBFFI_VER: 3.4.4
+          LIBFFI_VER: 3.4.8
           MIN_IOS: 15.0
           ARCHS: arm64e
           THEOS_PACKAGE_SCHEME: roothide
