@@ -125,7 +125,13 @@ export LD="$CC"
 export LDSHARED="$CC -bundle -undefined dynamic_lookup $LDFLAGS"
 export LDCXXSHARED="$CXX -bundle -undefined dynamic_lookup $LDFLAGS"
 
+export CONFIG_SITE="$PWD/config.site"
+export PYTHON_DISABLE_GIL=0
+export ac_cv_prog_cc_cross=yes
+
 # Run configure
+CONFIG_SITE="$PWD/config.site" \
+
 bash configure \
   --host="${HOST_TRIPLE}" \
   --build="$(uname -m)-apple-darwin" \
