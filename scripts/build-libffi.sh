@@ -20,7 +20,13 @@ mkdir -p "$DEPS_SRC" "$DEPS_BUILD" "$DEPS_DIST"
 LIBFFI_DIR="$DEPS_SRC/libffi-$LIBFFI_VER"
 if [ ! -d "$LIBFFI_DIR" ]; then
     echo "Downloading libffi v$LIBFFI_VER..."
-    curl -L "https://github.com" -o "$DEPS_SRC/libffi.tar.gz"
+    curl -fL \
+        "https://github.com/libffi/libffi/releases/download/v${LIBFFI_VER}/libffi-${LIBFFI_VER}.tar.gz" \
+        -o "$DEPS_SRC/libffi.tar.gz"
+
+    file "$DEPS_SRC/libffi.tar.gz"
+    tar -tf "$DEPS_SRC/libffi.tar.gz" >/dev/null
+
     tar -xf "$DEPS_SRC/libffi.tar.gz" -C "$DEPS_SRC"
 fi
 
