@@ -1,66 +1,58 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Script: build-libffi.sh
-# Purpose: Build libffi (static library) for iOS arm64.
-# Requires: LIBFFI_VER (set in environment or common-env.sh)
+# Script: common-env.sh
+# Purpose: Define common environment variables and toolchain settings for iOS arm64 builds.
+# Usage: Sourced by other scripts.
 # ==============================================================================
 
-set -euxo pipefail
-
-# Load common environment variables and toolchain settings
-# shellcheck disable=SC1091
-source "$(dirname "$0")/common-env.sh"
+set -euo pipefail
 
 # ------------------------------------------------------------------------------
-# Check for Existing Build
+# Parallelization
 # ------------------------------------------------------------------------------
-# If the static library already exists, skip the build to save time.
-if [ -f "$DEPS/libffi-ios/usr/local/lib/libffi.a" ]; then
-  echo "Info: libffi already built. Skipping..."
-  exit 0
-fi
+# Determine number of CPU cores for parallel make jobs.
+JOBS="$(sysctl -n hw.ncpu)"
 
-cd "$DEPS"
+export ARCHS="${ARCHS:-arm64e}"
+MIN_IOS="${MIN_IOS:-15.0}"
 
 # ------------------------------------------------------------------------------
-# Download Source
+# Directory Structure
 # ------------------------------------------------------------------------------
-# Download the libffi source tarball with retries to handle network flakiness.
-for i in 1 2 3 4 5; do
-  curl --fail --location --show-error -LO \
-    "https://github.com/libffi/libffi/releases/download/v${LIBFFI_VER}/libffi-${LIBFFI_VER}.tar.gz" && break || {
-    echo "Error: Download failed (attempt $i). Retrying in 3s..." >&2
-    sleep 3
-  }
-done
+# WORKDIR: Root for all build artifacts (default: <repo>/work)
+# DEPS:    Dependency build directory
+# BUILD:   Main build directory
+# STAGE:   Final staging directory for packaging
+WORKDIR="${WORKDIR:-$PWD/work}"
+DEPS="$WORKDIR/deps"
+BUILD="$WORKDIR/build"
+STAGE="$WORKDIR/stage"
 
-# Verify the download was successful
-[ -f "libffi-${LIBFFI_VER}.tar.gz" ] || { echo "Error: libffi tarball missing." >&2; exit 1; }
-
-# Extract source
-tar xf "libffi-${LIBFFI_VER}.tar.gz"
-cd "libffi-${LIBFFI_VER}"
+# Create directories if they don't exist
+mkdir -p "$DEPS" "$BUILD" "$STAGE"
 
 # ------------------------------------------------------------------------------
-# Configure and Build
+# iOS Toolchain Configuration
 # ------------------------------------------------------------------------------
-# Configure for iOS arm64 cross-compilation.
-# CFLAGS/LDFLAGS/CC are picked up from the environment (exported by common-env.sh).
-./configure \
-  --host="${HOST_TRIPLE}" \
-  --prefix=/usr/local \
-  --disable-shared \
-  --enable-static
-
-# Compile using the number of available CPU cores
-make -j"${JOBS}"
-
-# Install to the dependency staging directory
-make install DESTDIR="$DEPS/libffi-ios"
+# Locate the iOS SDK and toolchain binaries using xcrun.
+IOS_SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+CC="$(xcrun --sdk iphoneos -f clang)"
+CXX="$(xcrun --sdk iphoneos -f clang++)"
+AR="$(xcrun --sdk iphoneos -f ar)"
+RANLIB="$(xcrun --sdk iphoneos -f ranlib)"
+STRIP="$(xcrun --sdk iphoneos -f strip)"
+HOST_TRIPLE="aarch64-apple-darwin"
 
 # ------------------------------------------------------------------------------
-# Cleanup
+# Compiler Flags
 # ------------------------------------------------------------------------------
-# Remove source directory and tarball to free up disk space.
-cd "$DEPS"
-rm -rf "libffi-${LIBFFI_VER}" "libffi-${LIBFFI_VER}.tar.gz"
+# CFLAGS/LDFLAGS: Set architecture to arm64, point to SDK, and set min iOS version.
+# -fPIC is required for building shared libraries/extensions.
+export CFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS} -fPIC"
+export LDFLAGS="-arch ${ARCHS} -isysroot ${IOS_SDK} -miphoneos-version-min=${MIN_IOS}"
+
+# ------------------------------------------------------------------------------
+# Exports
+# ------------------------------------------------------------------------------
+# Export variables for use in child scripts.
+export JOBS WORKDIR DEPS BUILD STAGE IOS_SDK HOST_TRIPLE CC CXX AR RANLIB STRIP
