@@ -1,4 +1,4 @@
-name: Build Python 3.12 for iOS (arm64) and package .deb
+name: Build Python 3.12 for iOS (arm64e Roothide) and package .deb
 
 on:
   workflow_dispatch:
@@ -8,13 +8,15 @@ jobs:
     runs-on: macos-13
     timeout-minutes: 30
     concurrency:
-      group: ios-python3.12-arm64-${{ github.ref }}
+      group: ios-python3.12-arm64e-roothide-${{ github.ref }}
       cancel-in-progress: true
     env:
       PY_VER: 3.12.5
       LIBFFI_VER: 3.4.4
-      MIN_IOS: 14.5
-      OPENSSL_BRANCH: OpenSSL_1_1_1-stable  # Used for cache key; actual version pinned in build-openssl.sh
+      MIN_IOS: 15.0 # Roothide target systems generally require iOS 15.0+
+      ARCHS: arm64e # Targets arm64e slice
+      THEOS_PACKAGE_SCHEME: roothide # Signals Roothide environment mapping
+      OPENSSL_BRANCH: OpenSSL_1_1_1-stable
 
     steps:
       # ---------------------------------------------
@@ -40,10 +42,11 @@ jobs:
           path: |
             work/deps/openssl-ios
             work/deps/libffi-ios
-          key: ios-${{ runner.os }}-sdk-${{ steps.sdk.outputs.version }}-openssl-${{ env.OPENSSL_BRANCH }}-libffi-${{ env.LIBFFI_VER }}-hash-${{ hashFiles('scripts/*.sh', '.github/workflows/python3.12-ios-arm64.yml') }}
+          # Note: arm64e added to the key so it separates from standard rootless caches
+          key: ios-${{ runner.os }}-sdk-${{ steps.sdk.outputs.version }}-arm64e-openssl-${{ env.OPENSSL_BRANCH }}-libffi-${{ env.LIBFFI_VER }}-hash-${{ hashFiles('scripts/*.sh', '.github/workflows/*.yml') }}
           restore-keys: |
-            ios-${{ runner.os }}-sdk-${{ steps.sdk.outputs.version }}-openssl-${{ env.OPENSSL_BRANCH }}-libffi-${{ env.LIBFFI_VER }}-
-            ios-${{ runner.os }}-sdk-${{ steps.sdk.outputs.version }}-
+            ios-${{ runner.os }}-sdk-${{ steps.sdk.outputs.version }}-arm64e-openssl-${{ env.OPENSSL_BRANCH }}-libffi-${{ env.LIBFFI_VER }}-
+            ios-${{ runner.os }}-sdk-${{ steps.sdk.outputs.version }}-arm64e-
 
       # ---------------------------------------------
       # Install required build tools via Homebrew
@@ -63,17 +66,22 @@ jobs:
 
       # ---------------------------------------------
       # Build dependencies and CPython, then package .deb
-      # (Behavior identical to previous inline script)
       # ---------------------------------------------
       - name: Build Python 3.12 for iOS and package .deb
         env:
           PY_VER: 3.12.5
           LIBFFI_VER: 3.4.4
-          MIN_IOS: 14.5
+          MIN_IOS: 15.0
+          ARCHS: arm64e
+          THEOS_PACKAGE_SCHEME: roothide
           OPENSSL_BRANCH: OpenSSL_1_1_1-stable
         run: |
           set -euxo pipefail
-          # Ensure identical env scope as original inline block
+          
+          # Force compiler flags globally inside the runner environment
+          export CFLAGS="-arch arm64e -miphoneos-version-min=15.0"
+          export LDFLAGS="-arch arm64e -miphoneos-version-min=15.0"
+          
           source scripts/common-env.sh
 
           # 1) OpenSSL 1.1.1 (stable)
@@ -82,7 +90,7 @@ jobs:
           # 2) libffi (static)
           bash scripts/build-libffi.sh
 
-          # 3) CPython 3.12 build and stage (pass host python explicitly)
+          # 3) CPython 3.12 build and stage
           PYTHON_FOR_BUILD="${{ steps.py.outputs.python-path }}" bash scripts/build-python.sh
 
           # 4) .deb packaging
@@ -94,5 +102,5 @@ jobs:
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: python3.12_${{ env.PY_VER }}_iphoneos-arm
-          path: work/python3.12_${{ env.PY_VER }}-1_iphoneos-arm.deb
+          name: python3.12_${{ env.PY_VER }}_iphoneos-arm64e-roothide
+          path: work/*.deb
