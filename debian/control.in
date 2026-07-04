@@ -1,10 +1,10 @@
 Package: com.k1tty-xz.python3
-Name: Python 3.12 (k1tty)
+Name: Python 3.12 roothide (kysonlol)
 Version: ${PY_VER}-1
 Section: Development
 Priority: optional
-Architecture: iphoneos-arm
-Maintainer: k1tty-xz
+Architecture: iphoneos-arm64e
+Maintainer: kysonlol
 Installed-Size: ${INSTALLED_SIZE}
 Depends: firmware (>= 14.5)
 Conflicts: python3, org.coolstar.python3, com.bingner.python3
@@ -18,4 +18,5 @@ Description: The Python 3.12 interpreter for iOS.
  .
  Note: pip is NOT installed by default. To install it, run:
    python3 -m ensurepip
+ Originally made by k1tty-xz, compiled to roothide by kysonlol.
 Icon: https://raw.githubusercontent.com/k1tty-xz/python3.12-ios-arm64/refs/heads/main/icons/icon.png
