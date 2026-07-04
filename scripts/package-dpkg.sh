@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Script: package-dpkg.sh
-# Purpose: Package the staged files into a Debian .deb package.
+# Purpose: Package the staged files into a Debian .deb package for Roothide.
 # Requires: WORKDIR, STAGE, PY_VER (set in environment)
 # ==============================================================================
 
@@ -17,7 +17,8 @@ source "$(dirname "$0")/common-env.sh"
 PKGROOT="$WORKDIR/pkgroot"
 mkdir -p "$PKGROOT/DEBIAN"
 
-# Move staged files to package root
+# ROOTHIDE CHANGE: All jailbreak files must be packed relative to real root paths.
+# The Roothide installation framework handles dynamic path mapping automatically.
 mv "$STAGE/usr" "$PKGROOT/usr"
 
 # Calculate installed size for control file
@@ -50,8 +51,7 @@ fi
 # ------------------------------------------------------------------------------
 # PATH Configuration
 # ------------------------------------------------------------------------------
-# Create a profile script to ensure /usr/local/bin is in the user's PATH.
-# This is critical for users to be able to type 'python3' without full paths.
+# Create a profile script. For Roothide environments, /usr/local/bin must map safely.
 mkdir -p "$PKGROOT/etc/profile.d"
 cat > "$PKGROOT/etc/profile.d/python3.sh" <<'EOF'
 export PATH="/usr/local/bin:$PATH"
@@ -61,7 +61,8 @@ chmod 0644 "$PKGROOT/etc/profile.d/python3.sh"
 # ------------------------------------------------------------------------------
 # Build Package
 # ------------------------------------------------------------------------------
-OUTPUT="python3.12_${PY_VER}-1_iphoneos-arm.deb"
+# ROOTHIDE CHANGE: Updated output filename architecture identifier to iphoneos-arm64e
+OUTPUT="python3.12_${PY_VER}-1_iphoneos-arm64e.deb"
 dpkg-deb --build --root-owner-group "$PKGROOT" "$WORKDIR/$OUTPUT"
 
-echo "Success: Package built at $WORKDIR/$OUTPUT"
+echo "Success: Roothide Package built at $WORKDIR/$OUTPUT"
